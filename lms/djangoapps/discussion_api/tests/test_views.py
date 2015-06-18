@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 from urlparse import urlparse
 
+import ddt
 import httpretty
 import mock
 from pytz import UTC
@@ -133,7 +134,7 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             }
         )
 
-
+@ddt.ddt
 @httpretty.activate
 class ThreadViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
     """Tests for ThreadViewSet list"""
@@ -181,6 +182,8 @@ class ThreadViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "votes": {"up_count": 4},
             "comments_count": 5,
             "unread_comments_count": 3,
+            "read": False,
+            "endorsed": False
         }]
         expected_threads = [{
             "id": "test_thread",
@@ -208,6 +211,8 @@ class ThreadViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "endorsed_comment_list_url": None,
             "non_endorsed_comment_list_url": None,
             "editable_fields": ["abuse_flagged", "following", "voted"],
+            "read": False,
+            "has_endorsed": False
         }]
         self.register_get_threads_response(source_threads, page=1, num_pages=2)
         response = self.client.get(self.url, {"course_id": unicode(self.course.id)})
@@ -228,6 +233,34 @@ class ThreadViewSetListTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "page": ["1"],
             "per_page": ["10"],
             "recursive": ["False"],
+        })
+
+    @ddt.data(
+        ("read", True, "unread"),
+        ("read", False, "unread"),
+        ("endorsed", True, "unanswered"),
+        ("endorsed", False, "unanswered")
+    )
+    @ddt.unpack
+    def test_view_query(self, source_field, source_value, query):
+        threads = [make_minimal_cs_thread(overrides={source_field: source_value})]
+        self.register_get_user_response(self.user)
+        self.register_get_threads_response(threads, page=1, num_pages=1)
+        self.client.get(
+            self.url,
+            {
+                "course_id": unicode(self.course.id),
+                "view": query,
+            }
+        )
+        self.assert_last_query_params({
+            "course_id": [unicode(self.course.id)],
+            "sort_key": ["date"],
+            "sort_order": ["desc"],
+            "recursive": ["False"],
+            "page": ["1"],
+            "per_page": ["10"],
+            query: ["True"],
         })
 
     def test_pagination(self):
@@ -344,6 +377,8 @@ class ThreadViewSetCreateTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             "endorsed_comment_list_url": None,
             "non_endorsed_comment_list_url": None,
             "editable_fields": ["abuse_flagged", "following", "raw_body", "title", "topic_id", "type", "voted"],
+            "read": False,
+            "has_endorsed": False
         }
         response = self.client.post(
             self.url,
@@ -435,6 +470,8 @@ class ThreadViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTest
             "endorsed_comment_list_url": None,
             "non_endorsed_comment_list_url": None,
             "editable_fields": ["abuse_flagged", "following", "raw_body", "title", "topic_id", "type", "voted"],
+            "read": False,
+            "has_endorsed": False
         }
         response = self.client.patch(  # pylint: disable=no-member
             self.url,

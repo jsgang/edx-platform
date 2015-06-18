@@ -204,6 +204,32 @@ class CommentsServiceMockMixin(object):
             status=200
         )
 
+    def register_unread_threads_response(self, user, threads, page, num_pages):
+        """Register a mock response for GET on the CS user instance endpoint"""
+        httpretty.register_uri(
+            httpretty.GET,
+            "http://localhost:4567/api/v1/threads/endorsed".format(user.id),
+            body=json.dumps({
+                "collection": threads,
+                "page": page,
+                "num_pages": num_pages,
+            }),
+            status=200
+        )
+
+    def register_unanswered_threads_response(self, user, threads, page, num_pages):
+        """Register a mock response for GET on the CS user instance endpoint"""
+        httpretty.register_uri(
+            httpretty.GET,
+            "http://localhost:4567/api/v1/threads/read".format(user.id),
+            body=json.dumps({
+                "collection": threads,
+                "page": page,
+                "num_pages": num_pages,
+            }),
+            status=200
+        )
+
     def register_subscription_response(self, user):
         """
         Register a mock response for POST and DELETE on the CS user subscription
@@ -330,6 +356,8 @@ def make_minimal_cs_thread(overrides=None):
         "unread_comments_count": 0,
         "children": [],
         "resp_total": 0,
+        "read": False,
+        "endorsed": False,
     }
     ret.update(overrides or {})
     return ret
