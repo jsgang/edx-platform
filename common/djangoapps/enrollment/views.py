@@ -78,48 +78,61 @@ class EnrollmentView(APIView, ApiKeyPermissionMixIn):
 
             Get the user's enrollment status for a course.
 
-        **Example Requests**:
+        **Example Request**
 
             GET /api/enrollment/v1/enrollment/{username},{course_id}
 
         **Response Values**
 
-            * created: The date the user account was created.
+            If the request for information about the user is successful, an HTTP 200 "OK" response
+            is returned.
 
-            * mode: The enrollment mode of the user in this course.
+            The HTTP 200 response has the following values.
 
-            * is_active: Whether the enrollment is currently active.
+            * course_details: A collection that includes the following
+              values.
 
-            * course_details: A collection that includes:
-
+                * course_end: The date and time when the course closes. If
+                  null, the course never ends.
                 * course_id: The unique identifier for the course.
+                * course_modes: An array of data about the enrollment modes
+                  supported for the course. If the request uses the parameter
+                  include_expired=1, the array also includes expired
+                  enrollment modes.
 
-                * enrollment_start: The date and time that users can begin enrolling in the course.
-                  If null, enrollment opens immediately when the course is created.
+                  Each enrollment mode collection includes the following
+                  values.
 
-                * enrollment_end: The date and time after which users cannot enroll for the course.
-                  If null, the enrollment period never ends.
+                        * currency: The currency of the listed prices.
+                        * description: A description of this mode.
+                        * expiration_datetime: The date and time after which
+                          users cannot enroll in the course in this mode.
+                        * min_price: The minimum price for which a user can
+                          enroll in this mode.
+                        * name: The full name of the enrollment mode.
+                        * slug: The short name for the enrollment mode.
+                        * suggested_prices: A list of suggested prices for
+                          this enrollment mode.
 
-                * course_start: The date and time at which the course opens.
-                  If null, the course opens immediately when created.
+                * course_end: The date and time at which the course closes.  If
+                  null, the course never ends.
+                * course_start: The date and time when the course opens. If
+                  null, the course opens immediately when it is created.
+                * enrollment_end: The date and time after which users cannot
+                  enroll for the course. If null, the enrollment period never
+                  ends.
+                * enrollment_start: The date and time when users can begin
+                  enrolling in the course. If null, enrollment opens
+                  immediately when the course is created.
+                * invite_only: A value indicating whether students must be
+                  invited to enroll in the course. Possible values are true or
+                  false.
 
-                * course_end: The date and time at which the course closes.  If null, the course never ends.
-
-                * course_modes: An array of data about the enrollment modes supported for the course.
-                  Each enrollment mode collection includes:
-
-                    * slug: The short name for the enrollment mode.
-                    * name: The full name of the enrollment mode.
-                    * min_price: The minimum price for which a user can enroll in this mode.
-                    * suggested_prices: A list of suggested prices for this enrollment mode.
-                    * currency: The currency of the listed prices.
-                    * expiration_datetime: The date and time after which users cannot enroll in the course in this mode.
-                    * description: A description of this mode.
-
-                * invite_only: Whether students must be invited to enroll in the course; true or false.
-
+            * created: The date the user account was created.
+            * is_active: Whether the enrollment is currently active.
+            * mode: The enrollment mode of the user in this course.
             * user: The ID of the user.
-    """
+   """
 
     authentication_classes = OAuth2AuthenticationAllowInactiveUser, SessionAuthenticationAllowInactiveUser
     permission_classes = ApiKeyHeaderPermissionIsAuthenticated,
@@ -171,55 +184,64 @@ class EnrollmentView(APIView, ApiKeyPermissionMixIn):
 @can_disable_rate_limit
 class EnrollmentCourseDetailView(APIView):
     """
-        **Use Cases**
+        **Use Case**
 
             Get enrollment details for a course.
 
-            Response values include the course schedule and enrollment modes supported by the course.
-            Use the parameter include_expired=1 to include expired enrollment modes in the response.
+            Response values include the course schedule and enrollment modes
+            supported by the course. Use the parameter include_expired=1 to
+            include expired enrollment modes in the response.
 
-            **Note:** Getting enrollment details for a course does not require authentication.
+            **Note:** Getting enrollment details for a course does not require
+            authentication.
 
-        **Example Requests**:
+        **Example Requests**
 
             GET /api/enrollment/v1/course/{course_id}
 
-            GET /api/v1/enrollment/course/{course_id}?include_expired=1
-
+            GET /api/enrollment/v1/course/{course_id}?include_expired=1
 
         **Response Values**
 
-            A collection of course enrollments for the user, or for the newly created enrollment.
-            Each course enrollment contains:
+            If the request is successful, an HTTP 200 "OK" response is
+            returned along with a collection of course enrollments for the
+            user or for the newly created enrollment.
 
-                * course_id: The unique identifier of the course.
+            Each course enrollment contains the following values.
 
-                * enrollment_start: The date and time that users can begin enrolling in the course.
-                  If null, enrollment opens immediately when the course is created.
+                * course_end: The date and time when the course closes. If
+                  null, the course never ends.
+                * course_id: The unique identifier for the course.
+                * course_modes: An array of data about the enrollment modes
+                  supported for the course. If the request uses the parameter
+                  include_expired=1, the array also includes expired
+                  enrollment modes.
 
-                * enrollment_end: The date and time after which users cannot enroll for the course.
-                  If null, the enrollment period never ends.
+                  Each enrollment mode collection includes the following
+                  values.
 
-                * course_start: The date and time at which the course opens.
-                  If null, the course opens immediately when created.
-
-                * course_end: The date and time at which the course closes.  If null, the course never ends.
-
-                * course_modes: An array containing details about the enrollment modes supported for the course.
-                  If the request uses the parameter include_expired=1, the array also includes expired enrollment modes.
-
-                  Each enrollment mode collection includes:
-
-                        * slug: The short name for the enrollment mode.
-                        * name: The full name of the enrollment mode.
-                        * min_price: The minimum price for which a user can enroll in this mode.
-                        * suggested_prices: A list of suggested prices for this enrollment mode.
                         * currency: The currency of the listed prices.
-                        * expiration_datetime: The date and time after which users cannot enroll in the course
-                          in this mode.
                         * description: A description of this mode.
+                        * expiration_datetime: The date and time after which
+                          users cannot enroll in the course in this mode.
+                        * min_price: The minimum price for which a user can
+                          enroll in this mode.
+                        * name: The full name of the enrollment mode.
+                        * slug: The short name for the enrollment mode.
+                        * suggested_prices: A list of suggested prices for
+                          this enrollment mode.
 
-                * invite_only: Whether students must be invited to enroll in the course; true or false.
+                * course_start: The date and time when the course opens. If
+                  null, the course opens immediately when it is created.
+                * enrollment_end: The date and time after which users cannot
+                  enroll for the course. If null, the enrollment period never
+                  ends.
+                * enrollment_start: The date and time when users can begin
+                  enrolling in the course. If null, enrollment opens
+                  immediately when the course is created.
+                * invite_only: A value indicating whether students must be
+                  invited to enroll in the course. Possible values are true or
+                  false.
     """
 
     authentication_classes = []
@@ -259,23 +281,25 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
     """
         **Use Cases**
 
-            1. Get a list of all course enrollments for the currently logged in user.
+            * Get a list of all course enrollments for the currently signed in user.
 
-            2. Enroll the currently logged in user in a course.
+            * Enroll the currently signed in user in a course.
 
-               Currently a user can use this command only to enroll the user in "honor" mode.
+              Currently a user can use this command only to enroll the user in
+              honor mode. If honor mode is not supported for the course, the
+              request fails and returns the available modes.
 
-               If honor mode is not supported for the course, the request fails and returns the available modes.
+              This command can use a server-to-server call to enroll a user in
+              other modes, such as "verified", "professional", or "credit". If
+              the mode is not supported for the course, the request will fail
+              and return the available modes
 
-               A server-to-server call can be used by this command to enroll a user in other modes, such as "verified",
-               "professional" or "credit". If the mode is not supported for the course, the request will fail and
-               return the available modes.
+              You can include other parameters as enrollment attributes for
+              specific course mode as needed. For example, for credit mode, you
+              can include parameters namespace:'credit', name:'provider_id',
+              value:'UniversityX' to specify credit provider attribute.
 
-               You can include other parameters as enrollment attributes for specific course mode as needed. For
-               example, for credit mode, you can include parameters namespace:'credit', name:'provider_id',
-               value:'UniversityX' to specify credit provider attribute.
-
-        **Example Requests**:
+        **Example Requests**
 
             GET /api/enrollment/v1/enrollment
 
@@ -287,7 +311,7 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
                 "enrollment_attributes":[{"namespace": "credit","name": "provider_id","value": "hogwarts",},]
             }
 
-        **Post Parameters**
+            A POST request can include the following parameters.
 
             * user:  The username of the currently logged in user. Optional.
               You cannot use the command to enroll a different user.
@@ -298,12 +322,14 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
             * is_active: A Boolean indicating whether the enrollment is active. Only server-to-server requests are
               allowed to deactivate an enrollment. Optional.
 
-            * course details: A collection that contains:
+            * course details: A collection that includes the following
+              information.
 
                 * course_id: The unique identifier for the course.
 
-            * email_opt_in: A Boolean indicating whether the user
-              wishes to opt into email from the organization running this course. Optional.
+            * email_opt_in: Optional. A Boolean value that indicates whether
+              the user wants to receive email from the organization that runs
+              this course.
 
             * enrollment_attributes: A list of dictionary that contains:
 
@@ -311,48 +337,86 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
                 * name: Name of the attribute
                 * value: Value of the attribute
 
+            * is_active: Optional. A Boolean value that indicates whether the
+              enrollment is active. Only server-to-server requests can
+              deactivate an enrollment.
+
+            * mode: Optional. The course mode for the enrollment. Individual
+              users cannot upgrade their enrollment mode from "honor". Only
+              server-to-server requests can enroll with other modes.
+            
+            * user: Optional. The user ID of the currently logged in user. You
+              cannot use the command to enroll a different user.
+
         **Response Values**
 
-            A collection of course enrollments for the user, or for the newly created enrollment.
-            Each course enrollment contains:
+            If honor mode is not supported for the course, an HTTP x "Message"
+            response is returned along with the available course modes.
 
-                * created: The date the user account was created.
+            This command can use a server-to-server call to enroll a user in
+            other modes, such as "verified" or "professional". If the
+            specified mode is not supported for the course, an HTTP x
+            "Message" response is returned along with the available modes.
 
-                * mode: The enrollment mode of the user in this course.
+            If the request is successful, an HTTP 200 "OK" response is
+            returned along with a collection of course enrollments for the
+            user or for the newly created enrollment.
 
-                * is_active: Whether the enrollment is currently active.
+            Each course enrollment contains the following values.
 
-                * course_details: A collection that includes:
+            * course_details: A collection that includes the following
+              values.
 
-                    * course_id:  The unique identifier for the course.
+                * course_end: The date and time when the course closes. If
+                  null, the course never ends.
+                * course_id: The unique identifier for the course.
 
-                    * enrollment_start: The date and time that users can begin enrolling in the course.
-                      If null, enrollment opens immediately when the course is created.
+                * course_modes: An array of data about the enrollment modes
+                  supported for the course. If the request uses the parameter
+                  include_expired=1, the array also includes expired
+                  enrollment modes.
 
-                    * enrollment_end: The date and time after which users cannot enroll for the course.
-                      If null, the enrollment period never ends.
+                  Each enrollment mode collection includes the following
+                  values.
 
-                    * course_start: The date and time at which the course opens.
-                      If null, the course opens immediately when created.
+                  * currency: The currency of the listed prices.
 
-                    * course_end: The date and time at which the course closes.  If null, the course never ends.
+                  * description: A description of this mode.
 
-                    * course_modes: An array of data about the enrollment modes supported for the course.
-                      Each enrollment mode collection includes:
+                  * expiration_datetime: The date and time after which users
+                    cannot enroll in the course in this mode.
 
-                        * slug: The short name for the enrollment mode.
-                        * name: The full name of the enrollment mode.
-                        * min_price: The minimum price for which a user can enroll in this mode.
-                        * suggested_prices: A list of suggested prices for this enrollment mode.
-                        * currency: The currency of the listed prices.
-                        * expiration_datetime: The date and time after which users cannot enroll in the course
-                          in this mode.
-                        * description: A description of this mode.
+                  * min_price: The minimum price for which a user can enroll in
+                    this mode.
 
+                  * name: The full name of the enrollment mode.
 
-                    * invite_only: Whether students must be invited to enroll in the course; true or false.
+                  * slug: The short name for the enrollment mode.
 
-                * user: The username of the user.
+                  * suggested_prices: A list of suggested prices for this
+                    enrollment mode.
+                * course_start: The date and time when the course opens. If
+                  null, the course opens immediately when it is created.
+
+                * enrollment_end: The date and time after which users cannot
+                  enroll for the course. If null, the enrollment period never
+                  ends.
+
+                * enrollment_start: The date and time when users can begin
+                  enrolling in the course. If null, enrollment opens
+                  immediately when the course is created.
+
+                * invite_only: A value indicating whether students must be
+                  invited to enroll in the course. Possible values are true or
+                  false.
+
+             * created: The date the user account was created.
+
+             * is_active: Whether the enrollment is currently active.
+
+             * mode: The enrollment mode of the user in this course.
+
+             * user: The username of the user. of the user.
     """
     authentication_classes = OAuth2AuthenticationAllowInactiveUser, EnrollmentCrossDomainSessionAuth
     permission_classes = ApiKeyHeaderPermissionIsAuthenticated,

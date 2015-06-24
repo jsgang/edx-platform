@@ -183,7 +183,9 @@ MOCK_MODULES = [
     'update_account_settings',
     'serializers',
     'profile_images.images',
-    'xmodule.course_module'
+    'xmodule.course_module',
+    'user_api.accounts.api',
+    'user_api.accounts.serializers'
 
 
 ]
