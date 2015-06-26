@@ -17,6 +17,7 @@ import pytz
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.timezone import UTC
+from django.utils.translation import ugettext as _
 
 from opaque_keys.edx.keys import CourseKey, UsageKey
 
@@ -30,6 +31,7 @@ from xmodule.x_module import XModule, DEPRECATION_VSCOMPAT_EVENT
 from xmodule.split_test_module import get_split_user_partitions
 from xmodule.partitions.partitions import NoSuchUserPartitionError, NoSuchUserPartitionGroupError
 from xmodule.util.django import get_current_request_hostname
+from xmodule.course_module import DEFAULT_START_DATE
 
 from external_auth.models import ExternalAuthMap
 from courseware.masquerade import get_masquerade_role, is_masquerading_as_student
@@ -48,7 +50,8 @@ from ccx_keys.locator import CCXLocator
 
 import dogstats_wrapper as dog_stats_api
 
-from access_response import *
+from courseware.access_response import AccessResponse, StartDateError, MilestoneError, \
+    VisibilityError, MobileAvailabilityError
 
 DEBUG_ACCESS = False
 ACCESS_GRANTED = AccessResponse(True)
@@ -157,22 +160,28 @@ def _can_access_descriptor_with_start_date(user, descriptor, course_key):  # pyl
     """
     start_dates_disabled = settings.FEATURES['DISABLE_START_DATES']
     masquerading = is_masquerading_as_student(user, course_key)
-    now = datetime.now(UTC())
-    effective_start = _adjust_start_date_for_beta_testers(
-        user,
-        descriptor,
-        course_key=course_key
-    )
+    if start_dates_disabled and not masquerading:
+        return ACCESS_GRANTED
+    else:
+        now = datetime.now(UTC())
+        effective_start = _adjust_start_date_for_beta_testers(
+            user,
+            descriptor,
+            course_key=course_key
+        )
+        if descriptor.start is None or now > effective_start or in_preview_mode():
+            return ACCESS_GRANTED
 
-    if not (
-        (start_dates_disabled and not masquerading)
-        or descriptor.start is None
-        or now > effective_start
-        or in_preview_mode()
-    ):
-        # TODO: localization
-        return StartDateError("date")
-    return ACCESS_GRANTED
+    start_message = None
+    if hasattr(descriptor, 'advertised_start'):
+        if descriptor.advertised_start is not None:
+            start_message = _(descriptor.advertised_start)  # pylint: disable=translation-of-non-string
+        elif descriptor.start != DEFAULT_START_DATE:
+            start_message = descriptor.start
+        else:
+            start_message = _("coming soon")
+
+    return StartDateError(start_message)
 
 
 def _can_view_courseware_with_prerequisites(user, course):  # pylint: disable=invalid-name
@@ -188,6 +197,7 @@ def _can_view_courseware_with_prerequisites(user, course):  # pylint: disable=in
     where AType is CourseDescriptor, CourseOverview, or any other class that
         represents a course and has the attributes .location and .id.
     """
+
     if _has_staff_access_to_descriptor(user, course, course.id) or user.is_anonymous():
         return ACCESS_GRANTED
 
@@ -247,6 +257,7 @@ def _has_access_course_desc(user, action, course):
         """
         # delegate to generic descriptor check to check start dates
         return _has_access_descriptor(user, 'load', course, course.id)
+
 
     def can_enroll():
         """
@@ -464,7 +475,7 @@ def _has_group_access(descriptor, user, course_key):
     # if a referenced partition could not be found, access will be denied.
     try:
         partitions = [
-            descriptor._get_user_partition(partition_id)  # pylint:disable=protected-access
+            descriptor._get_user_partition(partition_id)  # pylint: disable=protected-access
             for partition_id, group_ids in merged_access.items()
             if group_ids is not None
         ]
@@ -523,6 +534,7 @@ def _has_access_descriptor(user, action, descriptor, course_key=None):
         students to see modules.  If not, views should check the course, so we
         don't have to hit the enrollments table on every module load.
         """
+
         if _has_staff_access_to_descriptor(user, descriptor, course_key):
             return ACCESS_GRANTED
 
@@ -534,7 +546,7 @@ def _has_access_descriptor(user, action, descriptor, course_key=None):
             return access_response
 
         access_response = _can_access_descriptor_with_start_date(user, descriptor, course_key)
-        if 'detached' not in descriptor._class_tags and not access_response:
+        if 'detached' not in descriptor._class_tags and not access_response:  # pylint: disable=protected-access
             return access_response
 
         return ACCESS_GRANTED
