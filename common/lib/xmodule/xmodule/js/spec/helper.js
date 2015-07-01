@@ -250,7 +250,8 @@
 
         jasmine.stubRequests();
 
-        window.injectScriptTagToDOM = jasmine.createSpy('injectScriptTagToDOM').andCallFake(function(scriptTag) {
+
+        spyOn(window.Video, 'loadYouTubeIFrameAPI').andCallFake(function (scriptTag) {
             var event = document.createEvent('Event');
             if (fixture === "video.html") {
                 event.initEvent('load', false, false);
