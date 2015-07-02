@@ -18,7 +18,10 @@
          * done.
          */
         modules: getModulesList([
-            'teams/js/teams_tab_factory'
+            'teams/js/teams_tab_factory',
+            'js/discovery/main',
+            'js/search/course/main',
+            'js/search/dashboard/main'
         ]),
 
         /**
@@ -53,7 +56,8 @@
             'underscore': 'empty:',
             'logger': 'empty:',
             'utility': 'empty:',
-            'URI': 'empty:'
+            'URI': 'empty:',
+            'course_discovery_meanings': 'empty:'
         },
         /**
          * If shim config is used in the app during runtime, duplicate the config
