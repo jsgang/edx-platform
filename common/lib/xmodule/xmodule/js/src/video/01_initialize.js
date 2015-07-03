@@ -33,6 +33,9 @@ function (VideoPlayer, i18n) {
 
         state.initialize(element)
             .done(function () {
+                if (state.isYoutubeType() && !state.speeds) {
+                    state.parseSpeed();
+                }
                 // On iPhones and iPods native controls are used.
                 if (/iP(hone|od)/i.test(state.isTouch[0])) {
                     _hideWaitPlaceholder(state);
@@ -574,7 +577,9 @@ function (VideoPlayer, i18n) {
             _waitForYoutubeApi(this);
 
             var scriptTag = document.createElement('script');
+
             scriptTag.src = 'https://' + this.config.ytApiUrl;
+            scriptTag.async = true;
 
             $(scriptTag).on('load', function() {
                 self.loadYoutubePlayer();
