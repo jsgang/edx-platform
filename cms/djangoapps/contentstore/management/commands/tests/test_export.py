@@ -57,7 +57,8 @@ class TestCourseExport(ModuleStoreTestCase):
             "Could not find course in {}".format(store)
         )
         # Test `export` management command with invalid course_id
-        with self.assertRaises(InvalidKeyError):
+        errstring = "Invalid course_key: 'InvalidCourseID'."
+        with self.assertRaisesRegexp(CommandError, errstring):
             call_command('export', "InvalidCourseID", self.temp_dir_1)
 
         # Test `export` management command with correct course_id
