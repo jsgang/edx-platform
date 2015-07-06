@@ -1,9 +1,7 @@
+# pylint: disable=abstract-method
 import json
 import logging
 import warnings
-import pytz
-
-from datetime import datetime, timedelta
 
 from lxml import etree
 
