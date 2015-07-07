@@ -22,7 +22,6 @@ from courseware.masquerade import CourseMasquerade
 from courseware.tests.factories import UserFactory, StaffFactory, InstructorFactory, BetaTesterFactory
 from courseware.tests.helpers import LoginEnrollmentTestCase
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-import ddt
 from student.tests.factories import AnonymousUserFactory, CourseEnrollmentAllowedFactory, CourseEnrollmentFactory
 from xmodule.course_module import (
     CATALOG_VISIBILITY_CATALOG_AND_ABOUT, CATALOG_VISIBILITY_ABOUT,

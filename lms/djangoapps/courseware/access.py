@@ -243,6 +243,7 @@ def _can_load_course_on_mobile(user, course):
 
     return ACCESS_GRANTED
 
+
 def _has_access_course_desc(user, action, course):
     """
     Check if user has access to a course descriptor.
@@ -267,7 +268,6 @@ def _has_access_course_desc(user, action, course):
         """
         # delegate to generic descriptor check to check start dates
         return _has_access_descriptor(user, 'load', course, course.id)
-
 
     def can_enroll():
         """
@@ -401,7 +401,7 @@ def _can_load_course_overview(user, course_overview):
         load access.
     """
     if _has_staff_access_to_descriptor(user, course_overview, course_overview.id):
-            return ACCESS_GRANTED
+        return ACCESS_GRANTED
 
     if course_overview.visible_to_staff_only:
         return VisibilityError()
