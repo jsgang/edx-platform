@@ -66,9 +66,9 @@ class SettingsMilestonesTest(StudioCourseTest):
         )
         pre_requisite_course_id = unicode(pre_requisite_course_key)
 
-        # Refresh the page to load the new course fixture and populate the prrequisite course dropdown
+        # Visit the page again to reload the new course fixture and populate the prerequisite course dropdown
         # Then select the prerequisite course and save the changes
-        self.settings_detail.refresh_page()
+        self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
         select_option_by_value(
             browser_query=self.settings_detail.pre_requisite_course_options,
@@ -80,8 +80,8 @@ class SettingsMilestonesTest(StudioCourseTest):
             self.settings_detail.alert_confirmation_title.text
         )
 
-        # Refresh the page again and confirm the prerequisite course selection is properly reflected
-        self.settings_detail.refresh_page()
+        # Visit the page again to confirm the prerequisite course selection is properly reflected
+        self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
         self.assertTrue(is_option_value_selected(
             browser_query=self.settings_detail.pre_requisite_course_options,
@@ -99,8 +99,8 @@ class SettingsMilestonesTest(StudioCourseTest):
             self.settings_detail.alert_confirmation_title.text
         )
 
-        # Refresh the page again to confirm the None selection is properly reflected
-        self.settings_detail.refresh_page()
+        # Visite the page again to confirm the None selection is properly reflected
+        self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
         self.assertTrue(is_option_value_selected(
             browser_query=self.settings_detail.pre_requisite_course_options,
@@ -118,8 +118,8 @@ class SettingsMilestonesTest(StudioCourseTest):
             self.settings_detail.alert_confirmation_title.text
         )
 
-        # Refresh the page again to confirm the prerequisite course selection is properly reflected
-        self.settings_detail.refresh_page()
+        # Visit the page again to confirm the prerequisite course selection is properly reflected
+        self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
         dropdown_status = is_option_value_selected(
             browser_query=self.settings_detail.pre_requisite_course_options,

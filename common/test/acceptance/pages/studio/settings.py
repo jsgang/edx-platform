@@ -171,15 +171,3 @@ class SettingsPage(CoursePage):
                 '#alert-confirmation-title',
                 'Save confirmation message is visible'
             )
-
-    def refresh_page(self, wait_for_confirmation=True):
-        """
-        Reload the page.
-        """
-        self.browser.refresh()
-        if wait_for_confirmation:
-            EmptyPromise(
-                lambda: self.q(css='body.view-settings').present,
-                'Page is refreshed'
-            ).fulfill()
-        self.wait_for_ajax()
