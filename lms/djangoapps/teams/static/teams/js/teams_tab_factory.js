@@ -1,16 +1,16 @@
 ;(function (define) {
     'use strict';
 
-    define(['jquery', 'teams/js/views/teams_tab', 'teams/js/collections/topic'],
-        function ($, TeamsTabView, TopicCollection) {
-            return function (topics, topics_url, course_id) {
-                var topicCollection, view;
-                topicCollection = new TopicCollection(topics, {url: topics_url, course_id: course_id, parse: true})
-                    .bootstrap();
-                view = new TeamsTabView({
+    define(['jquery', 'teams/js/views/teams_tab'],
+        function ($, TeamsTabView) {
+            return function (topics, topics_url, teams_url, course_id) {
+                (new TeamsTabView({
                     el: $('.teams-content'),
-                    topicCollection: topicCollection
-                }).render();
+                    topics: topics,
+                    topics_url: topics_url,
+                    teams_url: teams_url,
+                    course_id: course_id
+                })).render();
                 Backbone.history.start();
             };
         });
