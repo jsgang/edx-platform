@@ -188,8 +188,6 @@ def _can_access_descriptor_with_start_date(user, descriptor, course_key):  # pyl
 
         elif descriptor.start != DEFAULT_START_DATE:
             start_message = defaultfilters.date(descriptor.start, "DATE_FORMAT")
-        else:
-            start_message = _("coming soon")
 
     return StartDateError(start_message)
 
@@ -204,16 +202,14 @@ def _can_view_courseware_with_prerequisites(user, course):  # pylint: disable=in
     Arguments:
         user (User): the user whose course access we are checking.
         course (AType): the course for which we are checking access.
-    where AType is CourseDescriptor, CourseOverview, or any other class that
-        represents a course and has the attributes .location and .id.
+            where AType is CourseDescriptor, CourseOverview, or any other class that
+            represents a course and has the attributes .location and .id.
     """
 
     if _has_staff_access_to_descriptor(user, course, course.id) or user.is_anonymous():
         return ACCESS_GRANTED
 
-    if settings.FEATURES['ENABLE_PREREQUISITE_COURSES'] \
-            and course.pre_requisite_courses \
-            and get_pre_requisite_courses_not_completed(user, [course.id]):
+    if get_pre_requisite_courses_not_completed(user, [course.id]):
         return MilestoneError()
     return ACCESS_GRANTED
 
@@ -416,8 +412,8 @@ def _can_load_course_overview(user, course_overview):
 _COURSE_OVERVIEW_CHECKERS = {
     'load': _can_load_course_overview,
     'load_mobile': lambda user, course_overview: (
-        _can_load_course_overview(user, course_overview)
-        and _can_load_course_on_mobile(user, course_overview)
+        _can_load_course_overview(user, course_overview) if not _can_load_course_overview(user, course_overview)
+        else _can_load_course_on_mobile(user, course_overview)
     ),
     'view_courseware_with_prerequisites': _can_view_courseware_with_prerequisites
 }

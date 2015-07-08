@@ -265,7 +265,7 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase):
         (TOMORROW, ADVERTISED_START, ADVERTISED_START),
         (TOMORROW, None, defaultfilters.date(TOMORROW, "DATE_FORMAT")),
         (DEFAULT_START_DATE, ADVERTISED_START, ADVERTISED_START),
-        (DEFAULT_START_DATE, None, "coming soon")
+        (DEFAULT_START_DATE, None, None)
     )
     @ddt.unpack
     @patch.dict('django.conf.settings.FEATURES', {'DISABLE_START_DATES': False})
@@ -614,11 +614,11 @@ class CourseOverviewAccessTestCase(ModuleStoreTestCase):
 
         course_overview = CourseOverview.get_from_id(course.id)
         self.assertEqual(
-            access.has_access(user, action, course, course_key=course.id),
-            access.has_access(user, action, course_overview, course_key=course.id)
+            bool(access.has_access(user, action, course, course_key=course.id)),
+            bool(access.has_access(user, action, course_overview, course_key=course.id))
         )
 
-    def test_course_overivew_unsupported_action(self):
+    def test_course_overview_unsupported_action(self):
         """
         Check that calling has_access with an unsupported action raises a
         ValueError.
