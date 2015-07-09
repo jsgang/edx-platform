@@ -12,7 +12,7 @@ from django.http import (
     HttpResponseForbidden,
     Http404
 )
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
@@ -28,6 +28,61 @@ from openedx.core.djangoapps.credit.exceptions import CreditApiBadRequest, Credi
 
 log = logging.getLogger(__name__)
 
+
+@require_GET
+def get_provider_detail(request, provider_id):
+    """
+    get the details of required provider
+
+    This end-point will get the details of providers against
+    given parameter provider_id.
+
+    **Example Usage:**
+
+        Get /api/credit/v1/provider/hogwarts
+
+        Response: 200 OK
+        Content-Type: application/json
+        {
+            "url": "http://localhost:8000/api/credit/v1/provider/info/hogwarts",
+            "method": "GET",
+            "response": {
+                "provider_id": "hogwarts",
+                "display_name": "Hogwarts School of Witchcraft and Wizardry",
+                "provider_url": "https://credit.example.com/",
+                "provider_status_url": "https://credit.example.com/status/",
+                "provider_description: "A new model for the Witchcraft and Wizardry School System.",
+                "enable_integration": False,
+                "fulfillment_instructions": "
+                <p>In order to fulfill credit, Hogwarts School of Witchcraft and Wizardry requires learners to:</p>
+                <ul>
+                <li>Sample instruction abc</li>
+                <li>Sample instruction xyz</li>
+                </ul>",
+            }
+        }
+
+    **Parameters:**
+
+        * provider_id (unicode): The identifier for the provider for which
+         user requested
+
+    **Responses:**
+
+        * 200 OK: The request was created successfully.  Returned content
+            is a JSON-encoded dictionary describing what the client should
+            send to the credit provider.
+
+        * 404 Not Found:
+            - The provider does not exist.
+
+    """
+
+    provider_info = api.get_credit_provider_info(provider_id)
+    if not provider_info:
+        return Http404
+    else:
+        return JsonResponse(provider_info)
 
 @require_POST
 def create_credit_request(request, provider_id):
