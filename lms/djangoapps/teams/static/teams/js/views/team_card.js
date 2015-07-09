@@ -54,7 +54,7 @@
         TeamCardView = CardView.extend({
             initialize: function () {
                 CardView.prototype.initialize.apply(this, arguments);
-                // TODO: show last ac tivity detail view
+                // TODO: show last activity detail view
                 this.detailViews = [
                     new TeamMembershipView({model: this.model}),
                     new TeamCountryLanguageView({model: this.model})
