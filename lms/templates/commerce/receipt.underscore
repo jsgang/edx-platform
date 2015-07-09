@@ -51,6 +51,21 @@
             </tfoot>
           </table>
 
+          <% if ( receipt.creditDetail ) { %>
+              <table class="report report-receipt">
+              <tbody>
+                <tr>
+                  <td colspan="3"><%= interpolate(gettext("You still need to see visit %s to complete the credit process."), ["<a href='#'>Arizona State University</a>"]) %></td>
+                  <td><img src=""></td>
+                </tr>
+                <tr>
+                  <td colspan="3"><%- receipt.creditDetail%></td>
+                  <td><button>Complete Order</button></td>
+                </tr>
+              </tbody>
+            </table>
+          <% } %>
+
           <% if ( receipt.isRefunded ) { %>
           <div class="msg msg-refunds">
             <h4 class="title sr"><%- gettext( "Please Note" ) %>: </h4>

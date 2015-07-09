@@ -13,7 +13,7 @@ var edx = edx || {};
 
         initialize: function () {
             this.useEcommerceApi = !!($.url('?basket_id'));
-            _.bindAll(this, 'renderReceipt', 'renderError');
+            _.bindAll(this, 'renderReceipt', 'renderError', 'getProviderData');
 
             /* Mix non-conflicting functions from underscore.string (all but include, contains, and reverse) into
              * the Underscore namespace.
@@ -23,8 +23,9 @@ var edx = edx || {};
             this.render();
         },
 
-        renderReceipt: function (data) {
+        renderReceipt: function (provider_data) {
             var templateHtml = $("#receipt-tpl").html(),
+                receipt_data = this.receipt_data,
                 context = {
                     platformName: this.$el.data('platform-name'),
                     verified: this.$el.data('verified').toLowerCase() === 'true'
@@ -32,8 +33,8 @@ var edx = edx || {};
 
             // Add the receipt info to the template context
             _.extend(context, {
-                receipt: this.receiptContext(data),
-                courseKey: this.getOrderCourseKey(data)
+                receipt: this.receiptContext(receipt_data, provider_data),
+                courseKey: this.getOrderCourseKey(receipt_data)
             });
 
             this.$el.html(_.template(templateHtml, context));
@@ -53,7 +54,7 @@ var edx = edx || {};
             if (orderId && this.$el.data('is-payment-complete')==='True') {
                 // Get the order details
                 self.$el.removeClass('hidden');
-                self.getReceiptData(orderId).then(self.renderReceipt, self.renderError);
+                self.getReceiptData(orderId).then(self.getProviderData, self.renderError);
             } else {
                 self.renderError();
             }
@@ -91,15 +92,43 @@ var edx = edx || {};
                 dataType: 'json'
             }).retry({times: 5, timeout: 2000, statusCodes: [404]});
         },
+        /**
+         * Retrieve credit provider data from LMS.
+         * @param  {object} order The basket that was purchased.
+         * @return {object}                 JQuery Promise.
+         */
+        getProviderData: function (order) {
+            var provider_url = '/api/credit/v1/provider/%s/',
+                attribute_values,
+                line = order.lines[0],
+                provider_id;
+
+            this.receipt_data = order;
+
+            provider_id = this.getCreditProviderId(order);
+
+            if (provider_id) {
+                $.ajax({
+                    url: _.sprintf(provider_url, provider_id),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: this.renderReceipt,
+                    error: this.renderError,
+                }).retry({times: 5, timeout: 2000, statusCodes: [404]});
+            } else {
+                this.renderReceipt(provider_id);
+            }
+        },
 
         /**
          * Construct the template context from data received
          * from the E-Commerce API.
          *
          * @param  {object} order Receipt data received from the server
+         * @param  {object} provider_data received from the server.
          * @return {object}      Receipt template context.
          */
-        receiptContext: function (order) {
+        receiptContext: function (order, provider_data) {
             var self = this,
                 receiptContext;
 
@@ -111,7 +140,8 @@ var edx = edx || {};
                     totalCost: self.formatMoney(order.total_excl_tax),
                     isRefunded: false,
                     items: [],
-                    billedTo: null
+                    billedTo: null,
+                    creditDetail: provider_data
                 };
 
                 if (order.billing_address){
@@ -196,7 +226,31 @@ var edx = edx || {};
 
         formatMoney: function (moneyStr) {
             return Number(moneyStr).toFixed(2);
-        }
+        },
+
+        /**
+         * Check whether the payment is for the credit course
+         * or not.
+         *
+         * @param  {object} order Receipt data received from the server
+         * @return {string} String of the provider_id or null.
+         */
+        getCreditProviderId: function (order) {
+            var attribute_values,
+                line = order.lines[0];
+            if (this.useEcommerceApi) {
+                attribute_values = _.filter(line.product.attribute_values, function (attribute) {
+                        return attribute.name === 'credit_provider'
+                    });
+
+                // This method assumes that all items in the order are related to a single course.
+                if (attribute_values.length > 0) {
+                    return attribute_values[0]['value'];
+                }
+            }
+
+            return null;
+        },
     });
 
     new edx.commerce.ReceiptView({
