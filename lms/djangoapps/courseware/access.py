@@ -39,8 +39,12 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
 from student import auth
 from student.models import CourseEnrollmentAllowed
 from student.roles import (
-    GlobalStaff, CourseStaffRole, CourseInstructorRole,
-    OrgStaffRole, OrgInstructorRole, CourseBetaTesterRole
+    CourseBetaTesterRole,
+    CourseInstructorRole,
+    CourseStaffRole,
+    GlobalStaff,
+    OrgInstructorRole,
+    OrgStaffRole,
 )
 from util.milestones_helpers import (
     get_pre_requisite_courses_not_completed,
@@ -164,12 +168,11 @@ def _can_access_descriptor_with_start_date(user, descriptor, course_key):  # pyl
             and .days_early_for_beta.
 
     Returns:
-        AccessResponse: The result of this access check. Possible results are access granted or a StartDateError.
+        AccessResponse: The result of this access check. Possible results are
+            access granted or a StartDateError.
     """
-    # pylint: disable=translation-of-non-string
     start_dates_disabled = settings.FEATURES['DISABLE_START_DATES']
-    masquerading = is_masquerading_as_student(user, course_key)
-    if start_dates_disabled and not masquerading:
+    if start_dates_disabled and not is_masquerading_as_student(user, course_key):
         return ACCESS_GRANTED
     else:
         now = datetime.now(UTC())
@@ -181,15 +184,15 @@ def _can_access_descriptor_with_start_date(user, descriptor, course_key):  # pyl
         if descriptor.start is None or now > effective_start or in_preview_mode():
             return ACCESS_GRANTED
 
-    start_message = None
-    if hasattr(descriptor, 'advertised_start'):
-        if descriptor.advertised_start is not None:
-            start_message = _(descriptor.advertised_start)
+        start_error_message = None
+        if hasattr(descriptor, 'advertised_start'):
+            if descriptor.advertised_start is not None:
+                start_error_message = _(descriptor.advertised_start)  # pylint: disable=translation-of-non-string
 
-        elif descriptor.start != DEFAULT_START_DATE:
-            start_message = defaultfilters.date(descriptor.start, "DATE_FORMAT")
+            elif descriptor.start != DEFAULT_START_DATE:
+                start_error_message = defaultfilters.date(descriptor.start, "DATE_FORMAT")
 
-    return StartDateError(start_message)
+        return StartDateError(start_error_message)
 
 
 def _can_view_courseware_with_prerequisites(user, course):  # pylint: disable=invalid-name
@@ -205,13 +208,11 @@ def _can_view_courseware_with_prerequisites(user, course):  # pylint: disable=in
             where AType is CourseDescriptor, CourseOverview, or any other class that
             represents a course and has the attributes .location and .id.
     """
-
-    if _has_staff_access_to_descriptor(user, course, course.id) or user.is_anonymous():
-        return ACCESS_GRANTED
-
-    if get_pre_requisite_courses_not_completed(user, [course.id]):
-        return MilestoneError()
-    return ACCESS_GRANTED
+    return (
+        _has_staff_access_to_descriptor(user, course, course.id)
+        or user.is_anonymous()
+        or _has_fulfilled_pre_requisite_courses(user, [course.id])
+    )
 
 
 def _can_load_course_on_mobile(user, course):
@@ -230,14 +231,13 @@ def _can_load_course_on_mobile(user, course):
     Returns:
         bool: whether the course can be accessed on mobile.
     """
-    access_response = is_mobile_available_for_user(user, course)
-    if not access_response:
-        return access_response
-
-    if any_unfulfilled_milestones(course.id, user.id) and not _has_staff_access_to_descriptor(user, course, course.id):
-        return MilestoneError()
-
-    return ACCESS_GRANTED
+    return (
+        is_mobile_available_for_user(user, course) and
+        (
+            _has_staff_access_to_descriptor(user, course, course.id) or
+            _has_fulfilled_all_milestones(course.id, user.id)
+        )
+    )
 
 
 def _has_access_course_desc(user, action, course):
@@ -343,7 +343,7 @@ def _has_access_course_desc(user, action, course):
                 return ACCESS_GRANTED
             return _has_staff_access_to_descriptor(user, course, course.id)
 
-        return ACCESS_GRANTED if can_enroll() or can_load() else ACCESS_DENIED
+        return ACCESS_GRANTED if (can_enroll() or can_load()) else ACCESS_DENIED
 
     def can_see_in_catalog():
         """
@@ -396,17 +396,10 @@ def _can_load_course_overview(user, course_overview):
         The user doesn't have to be enrolled in the course in order to have load
         load access.
     """
-    if _has_staff_access_to_descriptor(user, course_overview, course_overview.id):
-        return ACCESS_GRANTED
-
-    if course_overview.visible_to_staff_only:
-        return VisibilityError()
-
-    access_response = _can_access_descriptor_with_start_date(user, course_overview, course_overview.id)
-    if not access_response:
-        return access_response
-
-    return ACCESS_GRANTED
+    return (
+        _is_visible_to_staff_only(course_overview)
+        and _can_access_descriptor_with_start_date(user, course_overview, course_overview.id)
+    ) or _has_staff_access_to_descriptor(user, course_overview, course_overview.id)
 
 
 _COURSE_OVERVIEW_CHECKERS = {
@@ -540,21 +533,14 @@ def _has_access_descriptor(user, action, descriptor, course_key=None):
         students to see modules.  If not, views should check the course, so we
         don't have to hit the enrollments table on every module load.
         """
-        if _has_staff_access_to_descriptor(user, descriptor, course_key):
-            return ACCESS_GRANTED
-
-        if descriptor.visible_to_staff_only:
-            return VisibilityError()
-
-        access_response = _has_group_access(descriptor, user, course_key)
-        if not access_response:
-            return access_response
-
-        access_response = _can_access_descriptor_with_start_date(user, descriptor, course_key)
-        if 'detached' not in descriptor._class_tags and not access_response:  # pylint: disable=protected-access
-            return access_response
-
-        return ACCESS_GRANTED
+        return _has_staff_access_to_descriptor(user, descriptor, course_key) or (
+            _is_visible_to_staff_only(descriptor)
+            and _has_group_access(descriptor, user, course_key)
+            and (
+                _check_if_detached(descriptor)
+                or _can_access_descriptor_with_start_date(user, descriptor, course_key)
+            )
+        )
 
     checkers = {
         'load': can_load,
@@ -775,6 +761,50 @@ def _has_staff_access_to_descriptor(user, descriptor, course_key):
     descriptor: something that has a location attribute
     """
     return _has_staff_access_to_location(user, descriptor.location, course_key)
+
+
+def _is_visible_to_staff_only(obj):
+    """
+    Returns if the object is visible to staff only.
+
+    Arguments:
+        obj: CourseOverview or CourseDescriptor to check
+    """
+    return VisibilityError() if obj.visible_to_staff_only else ACCESS_GRANTED
+
+
+def _check_if_detached(obj):
+    """
+    Returns if the given object has detached as a class tag.
+
+    Arguments:
+        obj: object to check
+    """
+    return ACCESS_GRANTED if 'detached' in obj._class_tags else ACCESS_DENIED  # pylint: disable=protected-access
+
+
+def _has_fulfilled_all_milestones(course_id, user_id):
+    """
+    Returns whether the given user has fulfilled all milestones for the
+    given course.
+
+    Arguments:
+        course_id: ID of the course to check
+        user_id: ID of the user to check
+    """
+    return MilestoneError() if any_unfulfilled_milestones(course_id, user_id) else ACCESS_GRANTED
+
+
+def _has_fulfilled_prerequisite_courses(user, course_id):
+    """
+    Returns whether the given user has fulfilled all prerequisites for the
+    given course.
+
+    Arguments:
+        user: user to check
+        course_id: ID of the course to check
+    """
+    return MilestoneError() if get_pre_requisite_courses_not_completed(user, course_id) else ACCESS_GRANTED
 
 
 def is_mobile_available_for_user(user, descriptor):

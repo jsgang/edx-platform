@@ -163,6 +163,7 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase):
         # TODO: override DISABLE_START_DATES and test the start date branch of the method
         user = Mock()
         descriptor = Mock(user_partitions=[])
+        descriptor._class_tags = {}
 
         # Always returns true because DISABLE_START_DATES is set in test.py
         self.assertTrue(access._has_access_descriptor(user, 'load', descriptor))
@@ -301,6 +302,7 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase):
             access._has_access_descriptor(
                 self.anonymous_user, 'load', mock_unit, course_key=self.course.course_key).to_json()['user_message'],
             expected_date)
+        translation.deactivate()
 
     def test__has_access_course_desc_can_enroll(self):
         yesterday = datetime.datetime.now(pytz.utc) - datetime.timedelta(days=1)
@@ -410,7 +412,6 @@ class AccessTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase):
         response = access._has_access_course_desc(user, 'view_courseware_with_prerequisites', course)
         self.assertFalse(response)
         self.assertIsInstance(response, access_response.MilestoneError)
-
         # Staff can always access course
         staff = StaffFactory.create(course_key=course.id)
         self.assertTrue(access._has_access_course_desc(staff, 'view_courseware_with_prerequisites', course))
