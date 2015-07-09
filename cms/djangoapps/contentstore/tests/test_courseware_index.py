@@ -1170,14 +1170,14 @@ class GroupConfigurationSearchMongo(CourseTestCase, MixedWithOptionsTestCase):
         Return object with arguments and content group for html_unit.
         """
         return {
-            'course_name': unicode(self.course.display_name),
+            'course_name': self.course.display_name,
             'id': unicode(html_unit.location),
-            'content': {'html_content': '', 'display_name': unicode(html_unit.display_name)},
+            'content': {'html_content': '', 'display_name': html_unit.display_name},
             'course': unicode(self.course.id),
             'location': [
-                unicode(self.chapter.display_name),
-                unicode(self.sequential.display_name),
-                unicode(html_unit.parent.display_name)
+                self.chapter.display_name,
+                self.sequential.display_name,
+                html_unit.parent.display_name
             ],
             'content_type': 'Text',
             'org': self.course.org,
@@ -1190,14 +1190,14 @@ class GroupConfigurationSearchMongo(CourseTestCase, MixedWithOptionsTestCase):
         Return object with arguments and content group for html_unit.
         """
         return {
-            'course_name': unicode(self.course.display_name),
+            'course_name': self.course.display_name,
             'id': unicode(html_unit.location),
-            'content': {'html_content': '', 'display_name': unicode(html_unit.display_name)},
+            'content': {'html_content': '', 'display_name': html_unit.display_name},
             'course': unicode(self.course.id),
             'location': [
-                unicode(self.chapter.display_name),
-                unicode(self.sequential2.display_name),
-                unicode(self.vertical3.display_name)
+                self.chapter.display_name,
+                self.sequential2.display_name,
+                self.vertical3.display_name
             ],
             'content_type': 'Text',
             'org': self.course.org,
@@ -1211,17 +1211,17 @@ class GroupConfigurationSearchMongo(CourseTestCase, MixedWithOptionsTestCase):
         """
         return {
             'start_date': datetime(2015, 4, 1, 0, 0, tzinfo=tzutc()),
-            'content': {'display_name': unicode(vertical.display_name)},
+            'content': {'display_name': vertical.display_name},
             'course': unicode(self.course.id),
             'location': [
-                unicode(self.chapter.display_name),
-                unicode(self.sequential2.display_name),
-                unicode(vertical.parent.display_name)
+                self.chapter.display_name,
+                self.sequential2.display_name,
+                vertical.parent.display_name
             ],
             'content_type': 'Sequence',
             'content_groups': content_groups,
             'id': unicode(vertical.location),
-            'course_name': unicode(self.course.display_name),
+            'course_name': self.course.display_name,
             'org': self.course.org
         }
 
@@ -1230,14 +1230,14 @@ class GroupConfigurationSearchMongo(CourseTestCase, MixedWithOptionsTestCase):
         Return object with arguments and content group set to empty array for html_unit.
         """
         return {
-            'course_name': unicode(self.course.display_name),
+            'course_name': self.course.display_name,
             'id': unicode(html_unit.location),
-            'content': {'html_content': '', 'display_name': unicode(html_unit.display_name)},
+            'content': {'html_content': '', 'display_name': html_unit.display_name},
             'course': unicode(self.course.id),
             'location': [
-                unicode(self.chapter.display_name),
-                unicode(self.sequential.display_name),
-                unicode(html_unit.parent.display_name)
+                self.chapter.display_name,
+                self.sequential.display_name,
+                html_unit.parent.display_name
             ],
             'content_type': 'Text',
             'org': self.course.org,
