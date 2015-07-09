@@ -57,6 +57,18 @@ class Command(BaseCommand):
         if not course_id:
             raise CommandError("You must specify a course-id")
 
+        def update_user_whitelist(username, add=True):
+            if '@' in username:
+                user = User.objects.get(email=username)
+            else:
+                user = User.objects.get(username=username)
+            cert_whitelist, _created = CertificateWhitelist.objects.get_or_create(
+                user=user, course_id=course
+            )
+
+            cert_whitelist.whitelist = add
+            cert_whitelist.save()
+
         # try to parse the serialized course key into a CourseKey
         try:
             course = CourseKey.from_string(course_id)
@@ -69,19 +81,13 @@ class Command(BaseCommand):
 
         if options['add'] or options['del']:
             user_str = options['add'] or options['del']
-            if '@' in user_str:
-                user = User.objects.get(email=user_str)
+            add_to_whitelist = True if options['add'] else False
+            if "," in user_str:
+                users_list = user_str.split(",")
+                for user in users_list:
+                    update_user_whitelist(user, add=add_to_whitelist)
             else:
-                user = User.objects.get(username=user_str)
-
-            cert_whitelist, _created = \
-                CertificateWhitelist.objects.get_or_create(
-                    user=user, course_id=course)
-            if options['add']:
-                cert_whitelist.whitelist = True
-            elif options['del']:
-                cert_whitelist.whitelist = False
-            cert_whitelist.save()
+                update_user_whitelist(user_str, add=add_to_whitelist)
 
         whitelist = CertificateWhitelist.objects.filter(course_id=course)
         wl_users = '\n'.join(
