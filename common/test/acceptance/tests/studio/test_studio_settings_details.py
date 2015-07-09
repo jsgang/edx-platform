@@ -13,7 +13,6 @@ from ...tests.studio.base_studio_test import StudioCourseTest
 from ..helpers import (
     generate_course_key,
     select_option_by_value,
-    is_option_value_selected,
     element_has_text,
 )
 
@@ -84,13 +83,7 @@ class SettingsMilestonesTest(StudioCourseTest):
         # Visit the page again to confirm the prerequisite course selection is properly reflected
         self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
-        self.settings_detail.wait_for(
-            lambda: is_option_value_selected(
-                browser_query=self.settings_detail.pre_requisite_course_options,
-                value=pre_requisite_course_id
-            ),
-            description='Prerequisite course is selected'
-        )
+        self.assertEqual(pre_requisite_course_id, self.settings_detail.selected_prerequisite_course)
 
         # Set the prerequisite course back to None and save the changes
         select_option_by_value(
@@ -106,10 +99,7 @@ class SettingsMilestonesTest(StudioCourseTest):
         # Visit the page again to confirm the None selection is properly reflected
         self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
-        self.assertTrue(is_option_value_selected(
-            browser_query=self.settings_detail.pre_requisite_course_options,
-            value=''
-        ))
+        self.assertEqual('', self.settings_detail.selected_prerequisite_course)
 
         # Re-pick the prerequisite course and confirm no errors are thrown (covers a discovered bug)
         select_option_by_value(
@@ -125,13 +115,7 @@ class SettingsMilestonesTest(StudioCourseTest):
         # Visit the page again to confirm the prerequisite course selection is properly reflected
         self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
-        self.settings_detail.wait_for(
-            lambda: is_option_value_selected(
-                browser_query=self.settings_detail.pre_requisite_course_options,
-                value=pre_requisite_course_id
-            ),
-            description='Prerequisite course is selected'
-        )
+        self.assertEqual(pre_requisite_course_id, self.settings_detail.selected_prerequisite_course)
 
     def test_page_has_enable_entrance_exam_field(self):
         """
