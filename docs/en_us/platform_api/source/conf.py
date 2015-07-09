@@ -185,7 +185,11 @@ MOCK_MODULES = [
     'profile_images.images',
     'xmodule.course_module',
     'user_api.accounts.api',
-    'user_api.accounts.serializers'
+    'user_api.accounts.serializers',
+    'ecommerce_api_client',
+    'client',
+    'ecommerce_api_client.client',
+    'ecommerce_api_client.exceptions'
 
 
 ]

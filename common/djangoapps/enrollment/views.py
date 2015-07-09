@@ -303,12 +303,12 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
 
             GET /api/enrollment/v1/enrollment
 
-            POST /api/enrollment/v1/enrollment{"mode": "honor", "course_details":{"course_id": "edX/DemoX/Demo_Course"}}
-
-            POST /api/enrollment/v1/enrollment{
+            POST /api/enrollment/v1/enrollment {
+                
                 "mode": "credit",
                 "course_details":{"course_id": "edX/DemoX/Demo_Course"},
                 "enrollment_attributes":[{"namespace": "credit","name": "provider_id","value": "hogwarts",},]
+            
             }
 
             A POST request can include the following parameters.
@@ -369,6 +369,7 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
 
                 * course_end: The date and time when the course closes. If
                   null, the course never ends.
+
                 * course_id: The unique identifier for the course.
 
                 * course_modes: An array of data about the enrollment modes
@@ -395,6 +396,7 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
 
                   * suggested_prices: A list of suggested prices for this
                     enrollment mode.
+
                 * course_start: The date and time when the course opens. If
                   null, the course opens immediately when it is created.
 
