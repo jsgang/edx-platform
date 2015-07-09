@@ -67,7 +67,7 @@ def has_required_keys(module):
     """Returns True iff module has the proper attributes for generating metadata with get_discussion_id_map_entry()"""
     for key in ('discussion_id', 'discussion_category', 'discussion_target'):
         if getattr(module, key, None) is None:
-            log.warning("Required key '%s' not in discussion %s, leaving out of category map", key, module.location)
+            log.debug("Required key '%s' not in discussion %s, leaving out of category map", key, module.location)
             return False
     return True
 
@@ -89,10 +89,13 @@ def get_discussion_id_map_entry(module):
     """
     Returns a tuple of (discussion_id, metadata) suitable for inclusion in the results of get_discussion_id_map().
     """
-    discussion_id = module.discussion_id
-    title = module.discussion_target
-    last_category = module.discussion_category.split("/")[-1].strip()
-    return (discussion_id, {"location": module.location, "title": last_category + " / " + title})
+    return (
+        module.discussion_id,
+        {
+            "location": module.location,
+            "title": module.discussion_category.split("/")[-1].strip() + " / " + module.discussion_target
+        }
+    )
 
 
 class DiscussionIdMapIsNotCached(Exception):
@@ -110,14 +113,12 @@ def get_cached_discussion_key(course, discussion_id):
         cached_mapping = CourseStructure.objects.get(course_id=course.id).discussion_id_map
         if not cached_mapping:
             raise DiscussionIdMapIsNotCached()
-        if discussion_id not in cached_mapping:
-            return None
-        return cached_mapping[discussion_id]
+        return cached_mapping.get(discussion_id)
     except CourseStructure.DoesNotExist:
         raise DiscussionIdMapIsNotCached()
 
 
-def get_cached_discussion_id(course, discussion_id, user):
+def get_cached_discussion_id_map(course, discussion_id, user):
     """
     Returns a dict mapping discussion_id to discussion module metadata if it is cached and visible to the user.
     If not, returns the result of get_discussion_id_map

@@ -213,7 +213,7 @@ class CachedDiscussionIdMapTestCase(ModuleStoreTestCase):
 
     def verify_discussion_metadata(self):
         """Retrieves the metadata for self.discussion and verifies that it is correct"""
-        metadata = utils.get_cached_discussion_id(self.course, 'test_discussion_id', self.user)
+        metadata = utils.get_cached_discussion_id_map(self.course, 'test_discussion_id', self.user)
         metadata = metadata[self.discussion.discussion_id]
         self.assertEqual(metadata['location'], self.discussion.location)
         self.assertEqual(metadata['title'], 'Chapter / Discussion 1')
@@ -226,20 +226,20 @@ class CachedDiscussionIdMapTestCase(ModuleStoreTestCase):
         self.verify_discussion_metadata()
 
     def test_get_missing_discussion_id_map_from_cache(self):
-        metadata = utils.get_cached_discussion_id(self.course, 'bogus_id', self.user)
+        metadata = utils.get_cached_discussion_id_map(self.course, 'bogus_id', self.user)
         self.assertEqual(metadata, {})
 
     def test_get_discussion_id_map_from_cache_without_access(self):
         user = UserFactory.create()
 
-        metadata = utils.get_cached_discussion_id(self.course, 'private_discussion_id', self.user)
-        self.assertEquals(metadata['private_discussion_id']['title'], 'Chapter 3 / Beta Testing')
+        metadata = utils.get_cached_discussion_id_map(self.course, 'private_discussion_id', self.user)
+        self.assertEqual(metadata['private_discussion_id']['title'], 'Chapter 3 / Beta Testing')
 
-        metadata = utils.get_cached_discussion_id(self.course, 'private_discussion_id', user)
+        metadata = utils.get_cached_discussion_id_map(self.course, 'private_discussion_id', user)
         self.assertEqual(metadata, {})
 
     def test_get_bad_discussion_id(self):
-        metadata = utils.get_cached_discussion_id(self.course, 'bad_discussion_id', self.user)
+        metadata = utils.get_cached_discussion_id_map(self.course, 'bad_discussion_id', self.user)
         self.assertEqual(metadata, {})
 
 

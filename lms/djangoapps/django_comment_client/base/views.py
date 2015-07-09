@@ -29,7 +29,7 @@ from django_comment_client.utils import (
     get_group_id_for_comments_service,
     get_discussion_categories_ids,
     get_discussion_id_map,
-    get_cached_discussion_id,
+    get_cached_discussion_id_map,
 )
 from django_comment_client.permissions import check_permissions_by_view, has_permission
 from eventtracking import tracker
@@ -82,7 +82,7 @@ def track_forum_event(request, event_name, course, obj, data, id_map=None):
     commentable_id = data['commentable_id']
 
     if id_map is None:
-        id_map = get_cached_discussion_id(course, commentable_id, user)
+        id_map = get_cached_discussion_id_map(course, commentable_id, user)
 
     if commentable_id in id_map:
         data['category_name'] = id_map[commentable_id]["title"]
