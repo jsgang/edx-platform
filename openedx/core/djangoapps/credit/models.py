@@ -498,8 +498,11 @@ class CreditEligibility(TimeStampedModel):
                     username=username,
                     course=CreditCourse.objects.get(course_key=course_key),
                 )
+                return True
             except IntegrityError:
-                pass
+                return False
+        else:
+            return False
 
     @classmethod
     def get_user_eligibilities(cls, username):
