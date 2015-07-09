@@ -73,16 +73,14 @@ def get_provider_detail(request, provider_id):
             is a JSON-encoded dictionary describing what the client should
             send to the credit provider.
 
-        * 404 Not Found:
-            - The provider does not exist.
+        * 404 Not Found: The provider does not exist.
 
     """
 
     provider_info = api.get_credit_provider_info(provider_id)
     if not provider_info:
         return Http404
-    else:
-        return JsonResponse(provider_info)
+    return JsonResponse(provider_info)
 
 @require_POST
 def create_credit_request(request, provider_id):

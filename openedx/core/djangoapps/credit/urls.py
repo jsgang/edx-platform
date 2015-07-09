@@ -23,6 +23,6 @@ urlpatterns = patterns(
     url(
         r"^v1/provider/info/(?P<provider_id>[^/]+)/?$",
         get_provider_detail,
-        name="provider_callback"
+        name="provider_details"
     ),
 )
