@@ -111,6 +111,26 @@ class CreditProvider(TimeStampedModel):
         )
     )
 
+    eligibility_email_message = models.TextField(
+        null=True,
+        blank=True,
+        help_text=ugettext_lazy(
+            "Plain text or html content for displaying custom message inside "
+            "credit eligibility email content which is sent when user has met "
+            "all credit eligibility requirements."
+        )
+    )
+
+    receipt_email_message = models.TextField(
+        null=True,
+        blank=True,
+        help_text=ugettext_lazy(
+            "Plain text or html content for displaying custom message inside "
+            "credit receipt email content which is sent *after* paying to get "
+            "credit for a credit course."
+        )
+    )
+
     CREDIT_PROVIDERS_CACHE_KEY = "credit.providers.list"
 
     @classmethod
