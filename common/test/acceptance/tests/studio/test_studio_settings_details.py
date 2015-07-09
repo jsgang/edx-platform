@@ -41,7 +41,7 @@ class SettingsMilestonesTest(StudioCourseTest):
 
         self.assertTrue(self.settings_detail.pre_requisite_course_options)
 
-    @flaky  # TODO: fix this. SOL-449
+    @flaky(max_runs=20, min_passes=20)  # TODO: fix this. SOL-449
     def test_prerequisite_course_save_successfully(self):
         """
          Scenario: Selecting course from Pre-Requisite course drop down save the selected course as pre-requisite
@@ -99,7 +99,7 @@ class SettingsMilestonesTest(StudioCourseTest):
             self.settings_detail.alert_confirmation_title.text
         )
 
-        # Visite the page again to confirm the None selection is properly reflected
+        # Visit the page again to confirm the None selection is properly reflected
         self.settings_detail.visit()
         self.settings_detail.wait_for_prerequisite_course_options()
         self.assertTrue(is_option_value_selected(
