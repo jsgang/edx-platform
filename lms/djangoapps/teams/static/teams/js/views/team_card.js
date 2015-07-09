@@ -38,8 +38,8 @@
         TeamCountryLanguageView = Backbone.View.extend({
             template: _.template(
                 '<p class="meta-detail project-relation"><span class="icon fa-list"></span> TODO - Figure Me Out </p>' +
-                '<% if (country) { print(\'<p class="meta-detail team-location"><span class="icon fa-globe"></span><%= country %></p>\'); } %>' +
-                '<% if (language) { print(\'<p class="meta-detail team-language"><span class="icon fa-chat"></span><%= language %></p>\'); } %>'
+                '<% if (country) { print(\'<p class="meta-detail team-location"><span class="icon fa-globe"></span>\' + country + \'</p>\'); } %>' +
+                '<% if (language) { print(\'<p class="meta-detail team-language"><span class="icon fa-chat"></span>\' + language + \'</p>\'); } %>'
             ),
 
             render: function() {
