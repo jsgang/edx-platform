@@ -46,7 +46,7 @@
                 // this.$el should be the card meta div
                 this.$el.append(this.template({
                     country: this.model.get('country'),
-                    language: this.model.get('langauge')
+                    language: this.model.get('language')
                 }));
             }
         });
